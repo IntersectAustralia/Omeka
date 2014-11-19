@@ -38,3 +38,8 @@
 .buildpath
 .project
 .settings/
+
+/Vagrantfile
+/.vagrant/*
+
+/.idea/*

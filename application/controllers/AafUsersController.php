@@ -12,6 +12,9 @@ class AafUsersController extends UsersController
 {
     public function loginAction()
     {
+        $aaf_config_file = CONFIG_DIR . '/aaf.ini';
+        $aaf_config = new Zend_Config_Ini($aaf_config_file, 'production');
+        $this->view->assign('unique_url', $aaf_config->unique_url);
         $this->_helper->viewRenderer->renderScript('aaf.php');
     }
 
@@ -24,51 +27,72 @@ class AafUsersController extends UsersController
         $aaf_config_file = CONFIG_DIR . '/aaf.ini';
         $aaf_config = new Zend_Config_Ini($aaf_config_file, 'production');
 
-        $secret = $aaf_config->secret;
-        $jws = $this->_request->getPost('assertion');
-        $jwt = JWT::decode($jws, $secret);
+        try {
+            $secret = $aaf_config->secret;
+            $jws = $this->_request->getPost('assertion');
+            $jwt = JWT::decode($jws, $secret);
 
-        # In a complete app we'd also store and validate the jti value to ensure there is no reply on this unique token ID
-        $now = strtotime("now");
-        if ($jwt->iss == $aaf_config->jwt->iss &&
-            $jwt->aud == $aaf_config->jwt->aud && strtotime($jwt->exp) < $now && $now > strtotime($jwt->nbf)
-        ) {
-            $email = $jwt->{'https://aaf.edu.au/attributes'}->{'mail'};
-            $password = 'AAFauthenticated';
-            $userTable = get_db()->getTable('User');
-            $user = $userTable->findBySql("email = ?", array($email), true);
-            if (!$user) {
-                $aaf_user = new User();
-                $aaf_user->username = $email;
-                $aaf_user->setPassword($password);
-                $aaf_user->active = 1;
-                $aaf_user->role = "researcher";
-                $aaf_user->name = $jwt->{'https://aaf.edu.au/attributes'}->{'displayname'};
-                $aaf_user->email = $email;
-                $aaf_user->save();
-            }
+            # In a complete app we'd also store and validate the jti value to ensure there is no reply on this unique token ID
+            $now = strtotime("now");
 
-            $authAdapter = new Omeka_Auth_Adapter_UserTable($this->_helper->db->getDb());
-            $authAdapter->setIdentity($email)->setCredential($password);
-            $authResult = $this->_auth->authenticate($authAdapter);
+            if ($jwt->iss == $aaf_config->jwt->iss &&
+                $jwt->aud == $aaf_config->jwt->aud
+                && strtotime($jwt->exp) > $now && $now > strtotime($jwt->nbf)
+            ) {
+                $email = $jwt->{'https://aaf.edu.au/attributes'}->{'mail'};
+                $password = substr(str_shuffle(MD5(microtime())), 0, 10);
+                $userTable = get_db()->getTable('User');
+                $user = $userTable->findBySql("email = ?", array($email), true);
 
-            if (!$authResult->isValid()) {
-                $this->_helper->flashMessenger($this->getLoginErrorMessages($authResult), 'error');
-            }
+                if (!$user) {
+                    $aaf_user = new User();
+                    $aaf_user->username = $email;
+                    $aaf_user->setPassword($password);
+                    $aaf_user->active = 1;
+                    $aaf_user->role = "researcher";
+                    $aaf_user->name = $jwt->{'https://aaf.edu.au/attributes'}->{'displayname'};
+                    $aaf_user->email = $email;
+                    $aaf_user->save();
+                }
 
-            $this->_helper->FlashMessenger('Successful Login');
-            $aaf_session = new Zend_Session_Namespace('aaf');
-            $aaf_session->jws = $jws;
-            $aaf_session->jwt = $jwt;
-            if ($aaf_session->redirect) {
-                $this->_helper->redirector->gotoUrl($aaf_session->redirect);
+                $authAdapter = new Omeka_Auth_Adapter_UserTable($this->_helper->db->getDb());
+                $authAdapter->setIdentity($email)->setCredential($password);
+                $authResult = $this->_auth->authenticate($authAdapter);
+
+                if (!$authResult->isValid()) {
+                    $this->_helper->flashMessenger($this->getLoginErrorMessages($authResult), 'error');
+                }
+
+                $this->_helper->FlashMessenger('Successful Login');
+                $aaf_session = new Zend_Session_Namespace('aaf');
+                $aaf_session->jws = $jws;
+                $aaf_session->jwt = $jwt;
+                if ($aaf_session->redirect) {
+                    $this->_helper->redirector->gotoUrl($aaf_session->redirect);
+                } else {
+                    $this->_helper->redirector->gotoUrl($aaf_config->redirect);
+                }
             } else {
-                $this->_helper->redirector->gotoUrl('/');
+                echo "Aborted!!!";
+                throw new Omeka_Controller_Exception_403(__("JWS is invalid."));
             }
-        } else {
-            echo "Aborted!!!";
-            echo $now;
-            throw new Omeka_Controller_Exception_403(__("JWS is invalid."));
+        } catch (Exception $e) {
+            echo 'Caught exception: ',  $e->getMessage(), "\n";
+            echo "<br>";
+            echo strtotime($jwt->exp), " // EXPiration time";
+            echo "<br>";
+            echo $now, " // now";
+            echo "<br>";
+            echo strtotime($jwt->nbf), " // Not BeFore";
+            echo "<br>";
+            echo $jwt->iss, " principal that ISSued the JWT.";
+            echo "<br>";
+            echo $aaf_config->jwt->iss;
+            echo "<br>";
+            echo $jwt->aud, " AUDiences that the JWT is intended for.";
+            echo "<br>";
+            echo $aaf_config->jwt->aud;
+            $this->_helper->viewRenderer->renderScript('aaf.php');
         }
     }
 }
