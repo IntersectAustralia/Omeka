@@ -39,7 +39,6 @@
 .project
 .settings/
 
-/Vagrantfile
 /.vagrant/*
 
 /.idea/*
