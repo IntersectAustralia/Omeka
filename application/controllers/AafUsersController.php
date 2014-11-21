@@ -36,8 +36,7 @@ class AafUsersController extends UsersController
             $now = strtotime("now");
 
             if ($jwt->iss == $aaf_config->jwt->iss &&
-                $jwt->aud == $aaf_config->jwt->aud
-                && strtotime($jwt->exp) > $now && $now > strtotime($jwt->nbf)
+                $jwt->aud == $aaf_config->jwt->aud && $jwt->exp > $now && $now > $jwt->nbf
             ) {
                 $email = $jwt->{'https://aaf.edu.au/attributes'}->{'mail'};
                 $password = substr(str_shuffle(MD5(microtime())), 0, 10);
@@ -77,21 +76,6 @@ class AafUsersController extends UsersController
                 throw new Omeka_Controller_Exception_403(__("JWS is invalid."));
             }
         } catch (Exception $e) {
-            echo 'Caught exception: ',  $e->getMessage(), "\n";
-            echo "<br>";
-            echo strtotime($jwt->exp), " // EXPiration time";
-            echo "<br>";
-            echo $now, " // now";
-            echo "<br>";
-            echo strtotime($jwt->nbf), " // Not BeFore";
-            echo "<br>";
-            echo $jwt->iss, " principal that ISSued the JWT.";
-            echo "<br>";
-            echo $aaf_config->jwt->iss;
-            echo "<br>";
-            echo $jwt->aud, " AUDiences that the JWT is intended for.";
-            echo "<br>";
-            echo $aaf_config->jwt->aud;
             $this->_helper->viewRenderer->renderScript('aaf.php');
         }
     }
