@@ -39,30 +39,28 @@ class AafUsersController extends UsersController
                 $jwt->aud == $aaf_config->jwt->aud && $jwt->exp > $now && $now > $jwt->nbf
             ) {
                 $email = $jwt->{'https://aaf.edu.au/attributes'}->{'mail'};
-                $password = substr(str_shuffle(MD5(microtime())), 0, 10);
                 $userTable = get_db()->getTable('User');
                 $user = $userTable->findBySql("email = ?", array($email), true);
-
                 if (!$user) {
-                    $aaf_user = new User();
-                    $aaf_user->username = $email;
-                    $aaf_user->setPassword($password);
-                    $aaf_user->active = 1;
-                    $aaf_user->role = "researcher";
-                    $aaf_user->name = $jwt->{'https://aaf.edu.au/attributes'}->{'displayname'};
-                    $aaf_user->email = $email;
-                    $aaf_user->save();
+                    $user = new User();
+                    $user->username = $email;
+                    $user->setPassword(substr(str_shuffle(MD5(microtime())), 0, 10));
+                    $user->active = 1;
+                    $user->role = "researcher";
+                    $user->name = $jwt->{'https://aaf.edu.au/attributes'}->{'displayname'};
+                    $user->email = $email;
+                    $user->save();
                 }
 
-                $authAdapter = new Omeka_Auth_Adapter_UserTable($this->_helper->db->getDb());
-                $authAdapter->setIdentity($email)->setCredential($password);
+                $authAdapter = new Aaf_Auth_Adapter_UserTable($this->_helper->db->getDb());
+                $authAdapter->setIdentity($user->username)->setCredential('Any arbitrary string for credential, since already passed AAF authentication at this point');
                 $authResult = $this->_auth->authenticate($authAdapter);
-
                 if (!$authResult->isValid()) {
                     $this->_helper->flashMessenger($this->getLoginErrorMessages($authResult), 'error');
+                    throw new Omeka_Controller_Exception_403(__('Failed to log in.'));
                 }
 
-                $this->_helper->FlashMessenger('Successful Login');
+                $this->_helper->flashMessenger('Successful Login');
                 $aaf_session = new Zend_Session_Namespace('aaf');
                 $aaf_session->jws = $jws;
                 $aaf_session->jwt = $jwt;
@@ -76,6 +74,7 @@ class AafUsersController extends UsersController
                 throw new Omeka_Controller_Exception_403(__("JWS is invalid."));
             }
         } catch (Exception $e) {
+            $this->_helper->flashMessenger($e->getMessage());
             $this->_helper->viewRenderer->renderScript('aaf.php');
         }
     }
