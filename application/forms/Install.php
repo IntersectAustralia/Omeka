@@ -173,7 +173,22 @@ class Omeka_Form_Install extends Omeka_Form
         $this->addElement('text', 'path_to_convert', array(
             'label' => __('ImageMagick Directory Path')
         ));
-        
+
+        $this->addElement('text', 'secret', array(
+            'label' => __('AAF Secret'),
+            'description' => 'The random string that you used to register with AAF.'
+        ));
+
+        $this->addElement('text', 'aud', array(
+            'label' => __('AAF Audience (aud)'),
+            'description' => 'Identifies the audiences that the JWT is intended for. Each principal intended to process the JWT MUST identify itself with a value in audience claim.'
+        ));
+
+        $this->addElement('text', 'unique_url', array(
+            'label' => __('AAF Unique URL'),
+            'description' => 'The unique URL given by AAF for registering your service, which your application should direct users to in order to start the authentication process.'
+        ));
+
         $this->addElement('submit', 'install_submit', array(
             'label' => __('Install'),
             'decorators' => array('Tooltip', 'ViewHelper')
@@ -190,7 +205,8 @@ class Omeka_Form_Install extends Omeka_Form
                   'copyright', 'author', 'tag_delimiter', 'fullsize_constraint', 
                   'thumbnail_constraint', 'square_thumbnail_constraint', 
                   'per_page_admin', 'per_page_public', 'show_empty_elements', 
-                  'path_to_convert'), 
+                  'path_to_convert',
+                  'secret', 'aud', 'unique_url'),
             'site_settings', 
             array('legend' =>__('Site Settings'))
         );

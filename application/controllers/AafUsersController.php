@@ -55,10 +55,6 @@ class AafUsersController extends UsersController
                 $authAdapter = new Aaf_Auth_Adapter_UserTable($this->_helper->db->getDb());
                 $authAdapter->setIdentity($user->username)->setCredential('Any arbitrary string for credential, since already passed AAF authentication at this point');
                 $authResult = $this->_auth->authenticate($authAdapter);
-                if (!$authResult->isValid()) {
-                    $this->_helper->flashMessenger($this->getLoginErrorMessages($authResult), 'error');
-                    throw new Omeka_Controller_Exception_403(__('Failed to log in.'));
-                }
 
                 $this->_helper->flashMessenger('Successful Login');
                 $aaf_session = new Zend_Session_Namespace('aaf');
@@ -67,7 +63,7 @@ class AafUsersController extends UsersController
                 if ($aaf_session->redirect) {
                     $this->_helper->redirector->gotoUrl($aaf_session->redirect);
                 } else {
-                    $this->_helper->redirector->gotoUrl($aaf_config->redirect);
+                    $this->_helper->redirector->gotoUrl("/");
                 }
             } else {
                 echo "Aborted!!!";
