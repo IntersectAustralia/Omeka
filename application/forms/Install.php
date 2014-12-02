@@ -179,11 +179,6 @@ class Omeka_Form_Install extends Omeka_Form
             'description' => 'The random string that you used to register with AAF.'
         ));
 
-        $this->addElement('text', 'aud', array(
-            'label' => __('AAF Audience (aud)'),
-            'description' => 'Identifies the audiences that the JWT is intended for. Each principal intended to process the JWT MUST identify itself with a value in audience claim.'
-        ));
-
         $this->addElement('text', 'unique_url', array(
             'label' => __('AAF Unique URL'),
             'description' => 'The unique URL given by AAF for registering your service, which your application should direct users to in order to start the authentication process.'
