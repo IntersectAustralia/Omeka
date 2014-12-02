@@ -174,14 +174,32 @@ class Omeka_Form_Install extends Omeka_Form
             'label' => __('ImageMagick Directory Path')
         ));
 
+        $this->addElement('checkbox', 'use_aaf', array(
+            'label' => 'AAF Authentication',
+            'description' => 'Check box to enable AAF authentication in your Omeka site.'
+        ));
+
+        $this->addElement('note', 'help-text', array(
+            'description' => "Please visit <a href=\"https://rapid.test.aaf.edu.au/registration\" target=\"_blank\">https://rapid.test.aaf.edu.au/registration</a> to register your service.
+                              You will be prompted to log in with AAF.<br>
+                              Fill in the Service Registration form as indicated below:
+                              <li><b>Organisation</b>: select the institution of your AAF account from the list provided</li>
+                              <li><b>Name</b>: could be anything descriptive</li>
+                              <li><b>URL</b>: https://" . $_SERVER['SERVER_ADDR'] . "</li>
+                              <li><b>Callback URL</b>: https://" . $_SERVER['SERVER_ADDR'] . "/auth/jwt </li>
+                              <li><b>Secret</b>: could be a random string, or use the recommended generation method as shown on the form</li>
+                              You need to input the same secret string used in registration in the first text field below. Put the unique URL that you get back from AAF Rapid Connect after registration in the second field below.
+                              "
+        ));
+
         $this->addElement('text', 'secret', array(
             'label' => __('AAF Secret'),
-            'description' => 'The random string that you used to register with AAF.'
+            'description' => 'The random string that you used to register with AAF Rapid Connect.',
         ));
 
         $this->addElement('text', 'unique_url', array(
             'label' => __('AAF Unique URL'),
-            'description' => 'The unique URL given by AAF for registering your service, which your application should direct users to in order to start the authentication process.'
+            'description' => 'The unique URL given by AAF Rapid Connect for registering your service, to start the authentication process in your Omeka app.',
         ));
 
         $this->addElement('submit', 'install_submit', array(
@@ -201,11 +219,17 @@ class Omeka_Form_Install extends Omeka_Form
                   'thumbnail_constraint', 'square_thumbnail_constraint', 
                   'per_page_admin', 'per_page_public', 'show_empty_elements', 
                   'path_to_convert',
-                  'secret', 'aud', 'unique_url'),
+                  'use_aaf'),
             'site_settings', 
             array('legend' =>__('Site Settings'))
         );
-        
+
+        $this->addDisplayGroup(
+            array('help-text', 'secret', 'aud', 'unique_url'),
+            'aaf_config',
+            array('legend' => __('AAF Settings'))
+        );
+
         $this->addDisplayGroup(
             array('install_submit'), 
             'submit'
