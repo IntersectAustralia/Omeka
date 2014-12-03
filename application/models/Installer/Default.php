@@ -127,13 +127,15 @@ class Installer_Default implements Installer_InstallerInterface
             'api_per_page' => 50,
             'show_element_set_headings' => 1
         ));
-        $file = CONFIG_DIR . '/aaf.ini';
-        $secret = $this->_getValue('secret');
-        $iss = "https://rapid.test.aaf.edu.au";
-        $aud = 'https://' . $_SERVER['SERVER_ADDR'];
-        $unique_url = $this->_getValue('unique_url');
-        $aaf_config = "[production]\n\nsecret      = \"$secret\"\njwt.iss     = \"$iss\"\njwt.aud     = \"$aud\"\nunique_url  = \"$unique_url\"\n";
-        file_put_contents($file, $aaf_config, FILE_APPEND | LOCK_EX);
+        if ($this->_getValue('use_aaf')) {
+            $file = CONFIG_DIR . '/aaf.ini';
+            $secret = $this->_getValue('secret');
+            $iss = "https://rapid.test.aaf.edu.au";
+            $aud = 'https://' . $_SERVER['SERVER_ADDR'];
+            $unique_url = $this->_getValue('unique_url');
+            $aaf_config = "[production]\n\nsecret      = \"$secret\"\njwt.iss     = \"$iss\"\njwt.aud     = \"$aud\"\nunique_url  = \"$unique_url\"\n";
+            file_put_contents($file, $aaf_config, FILE_APPEND | LOCK_EX);
+        }
         $task->install($this->_db);
     }
     

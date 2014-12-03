@@ -176,7 +176,7 @@ class Omeka_Form_Install extends Omeka_Form
 
         $this->addElement('checkbox', 'use_aaf', array(
             'label' => 'AAF Authentication',
-            'description' => 'Check box to enable AAF authentication in your Omeka site.'
+            'description' => 'Check box to enable AAF authentication in your Omeka site, and provide AAF configurations below.'
         ));
 
         $this->addElement('note', 'help-text', array(
@@ -187,8 +187,8 @@ class Omeka_Form_Install extends Omeka_Form
                               <li><b>Name</b>: could be anything descriptive</li>
                               <li><b>URL</b>: https://" . $_SERVER['SERVER_ADDR'] . "</li>
                               <li><b>Callback URL</b>: https://" . $_SERVER['SERVER_ADDR'] . "/auth/jwt </li>
-                              <li><b>Secret</b>: could be a random string, or use the recommended generation method as shown on the form</li>
-                              You need to input the same secret string used in registration in the first text field below. Put the unique URL that you get back from AAF Rapid Connect after registration in the second field below.
+                              <li><b>Secret</b>: could be a random string, or use the recommended generation method as shown on the form. Also put the secret you used into the first text field below.</li>
+                              Then, put the unique URL that you get back from AAF Rapid Connect after registration into the second field below.
                               "
         ));
 
@@ -201,6 +201,16 @@ class Omeka_Form_Install extends Omeka_Form
             'label' => __('AAF Unique URL'),
             'description' => 'The unique URL given by AAF Rapid Connect for registering your service, to start the authentication process in your Omeka app.',
         ));
+
+        $checkElement = $this->getElement('use_aaf');
+        $this->getElement('secret')->setAllowEmpty(false);
+        $this->getElement('secret')->setAllowEmpty(false)
+            ->addValidator(new Custom_Validate_RequiredIfCheckedValidator($checkElement))
+            ->addErrorMessage('Secret is required when AAF Authentication box is checked');
+        $this->getElement('unique_url')->setAllowEmpty(false);
+        $this->getElement('unique_url')->setAllowEmpty(false)
+            ->addValidator(new Custom_Validate_RequiredIfCheckedValidator($checkElement))
+            ->addErrorMessage('Unique URL is required when AAF Authentication box is checked');
 
         $this->addElement('submit', 'install_submit', array(
             'label' => __('Install'),
