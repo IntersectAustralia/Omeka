@@ -180,7 +180,7 @@ class Omeka_Form_Install extends Omeka_Form
         ));
 
         $this->addElement('note', 'help-text', array(
-            'description' => "Please visit <a href=\"https://rapid.test.aaf.edu.au/registration\" target=\"_blank\">https://rapid.test.aaf.edu.au/registration</a> to register your service.
+            'description' => "Please visit <a href=\"https://rapid.aaf.edu.au/registration\" target=\"_blank\">https://rapid.aaf.edu.au/registration</a> to register your service.
                               You will be prompted to log in with AAF.<br>
                               Fill in the Service Registration form as indicated below:
                               <li><b>Organisation</b>: select the institution of your AAF account from the list provided</li>
