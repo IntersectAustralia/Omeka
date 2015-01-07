@@ -182,13 +182,13 @@ class Omeka_Form_Install extends Omeka_Form
         $this->addElement('note', 'help-text', array(
             'description' => "Please visit <a href=\"https://rapid.aaf.edu.au/registration\" target=\"_blank\">https://rapid.aaf.edu.au/registration</a> to register your service.
                               You will be prompted to log in with AAF.<br>
-                              Fill in the Service Registration form as indicated below:
+                              Then, fill in the Service Registration form as indicated below:
                               <li><b>Organisation</b>: select the institution of your AAF account from the list provided</li>
                               <li><b>Name</b>: could be anything descriptive</li>
-                              <li><b>URL</b>: https://" . $_SERVER['SERVER_ADDR'] . "</li>
-                              <li><b>Callback URL</b>: https://" . $_SERVER['SERVER_ADDR'] . "/auth/jwt </li>
-                              <li><b>Secret</b>: could be a random string, or use the recommended generation method as shown on the form. Also put the secret you used into the first text field below.</li>
-                              Then, put the unique URL that you get back from AAF Rapid Connect after registration into the second field below.
+                              <li><b>URL</b>: https://&lt;<i>your chosen domain name for this site<\i>&gt;</li>, also fill in this domain name in the first text field below.
+                              <li><b>Callback URL</b>: https://&lt;<i>your domain name for this site<\i>&gt;/auth/jwt </li>
+                              <li><b>Secret</b>: could be a random string, or use the recommended generation method as shown on the form. Also put the secret you used into the second text field below.</li>
+                              Once your service registration has been approved, put the unique URL that you get back from AAF Rapid Connect into the third field below.
                               "
         ));
 
@@ -197,9 +197,16 @@ class Omeka_Form_Install extends Omeka_Form
             'description' => 'The random string that you used to register with AAF Rapid Connect.',
         ));
 
+        $this->addElement('text', 'aud', array(
+            'label' => __('Domain Name'),
+            'description' => 'The domain name registered with AAF for this site.',
+            'value' => 'https://',
+        ));
+
         $this->addElement('text', 'unique_url', array(
             'label' => __('AAF Unique URL'),
             'description' => 'The unique URL given by AAF Rapid Connect for registering your service, to start the authentication process in your Omeka app.',
+            'value' => 'https://',
         ));
 
         $checkElement = $this->getElement('use_aaf');
@@ -207,6 +214,9 @@ class Omeka_Form_Install extends Omeka_Form
         $this->getElement('secret')->setAllowEmpty(false)
             ->addValidator(new Custom_Validate_RequiredIfCheckedValidator($checkElement))
             ->addErrorMessage('Secret is required when AAF Authentication box is checked');
+        $this->getElement('aud')->setAllowEmpty(false)
+            ->addValidator(new Custom_Validate_RequiredIfCheckedValidator($checkElement))
+            ->addErrorMessage('Domain name is required when AAF Authentication box is checked');
         $this->getElement('unique_url')->setAllowEmpty(false);
         $this->getElement('unique_url')->setAllowEmpty(false)
             ->addValidator(new Custom_Validate_RequiredIfCheckedValidator($checkElement))
@@ -218,24 +228,23 @@ class Omeka_Form_Install extends Omeka_Form
         ));
         
         $this->addDisplayGroup(
-            array('username', 'password', 'password_confirm', 'super_email'), 
-            'superuser_account', 
+            array('username', 'password', 'password_confirm', 'super_email'),
+            'superuser_account',
             array('legend' => __('Default Superuser Account'))
         );
         
         $this->addDisplayGroup(
-            array('administrator_email', 'site_title', 'description', 
-                  'copyright', 'author', 'tag_delimiter', 'fullsize_constraint', 
-                  'thumbnail_constraint', 'square_thumbnail_constraint', 
-                  'per_page_admin', 'per_page_public', 'show_empty_elements', 
-                  'path_to_convert',
-                  'use_aaf'),
-            'site_settings', 
-            array('legend' =>__('Site Settings'))
+            array('administrator_email', 'site_title', 'description',
+                'copyright', 'author', 'tag_delimiter', 'fullsize_constraint',
+                'thumbnail_constraint', 'square_thumbnail_constraint',
+                'per_page_admin', 'per_page_public', 'show_empty_elements',
+                'path_to_convert'),
+            'site_settings',
+            array('legend' => __('Site Settings'))
         );
 
         $this->addDisplayGroup(
-            array('help-text', 'secret', 'aud', 'unique_url'),
+            array('use_aaf', 'help-text', 'aud', 'secret', 'unique_url'),
             'aaf_config',
             array('legend' => __('AAF Settings'))
         );

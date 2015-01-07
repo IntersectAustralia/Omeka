@@ -129,9 +129,9 @@ class Installer_Default implements Installer_InstallerInterface
         ));
         if ($this->_getValue('use_aaf')) {
             $file = CONFIG_DIR . '/aaf.ini';
-            $secret = $this->_getValue('secret');
-            $iss = "https://rapid.test.aaf.edu.au";
-            $aud = 'https://' . $_SERVER['SERVER_ADDR'];
+            $secret = addslashes($this->_getValue('secret'));
+            $iss = "https://rapid.aaf.edu.au";
+            $aud = $this->_getValue('aud');
             $unique_url = $this->_getValue('unique_url');
             $aaf_config = "[production]\n\nsecret      = \"$secret\"\njwt.iss     = \"$iss\"\njwt.aud     = \"$aud\"\nunique_url  = \"$unique_url\"\n";
             file_put_contents($file, $aaf_config, FILE_APPEND | LOCK_EX);
